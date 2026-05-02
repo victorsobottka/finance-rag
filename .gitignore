@@ -1,0 +1,8 @@
+#Ignore the API Secret file:
+finance_rag_Secret.tx
+
+.env
+data/
+__pycache__/
+*.pyc
+.DS_Store

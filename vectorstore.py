@@ -1,6 +1,6 @@
 # vectorstore.py
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from ingest import load_pdf, chunk_documents
 

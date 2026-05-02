@@ -3,10 +3,14 @@
 # conda activate finance-rag
 
 __import__('pysqlite3')
+
+from dotenv import load_dotenv
+load_dotenv("/home/sobottka/Documents/Projects/finance-rag/.env")
+
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
@@ -29,7 +33,7 @@ def build_retriever(vectorstore, search_type="mmr"):
     )
 
 def build_compressed_retriever(vectorstore):
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     compressor = LLMChainExtractor.from_llm(llm)
     base_retriever = build_retriever(vectorstore)
     return ContextualCompressionRetriever(
@@ -71,7 +75,7 @@ def format_docs(docs):
 
 def build_rag_chain(vectorstore):
     retriever = build_retriever(vectorstore)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     chain = (
         {
             "context": retriever | format_docs,
