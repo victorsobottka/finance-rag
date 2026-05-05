@@ -51,7 +51,7 @@ if __name__ == "__main__":
     docs = load_pdf("data/aapl_10k_2024.pdf")
     chunks = chunk_documents(docs)
     vs = build_vectorstore(chunks)
-    
+
     # Quick sanity check
     results = vs.similarity_search("What was the revenue?", k=3)
     for r in results:
