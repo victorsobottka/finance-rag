@@ -1,5 +1,9 @@
+name: Deploy to Hugging Face
+
 on:
-  push:
+  workflow_run:
+    workflows: ["CI — Finance RAG"]  # must match exactly the name: in ci.yml
+    types: [completed]
     branches: [main]
 
 jobs:
@@ -16,5 +20,5 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git remote add hf https://your-username:$HF_TOKEN@huggingface.co/spaces/your-username/finance-rag
+          git remote add hf https://victorsobotka:$HF_TOKEN@huggingface.co/spaces/victorsobottka/finance-rag
           git push hf main --force
