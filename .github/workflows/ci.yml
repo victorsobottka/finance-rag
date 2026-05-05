@@ -1,4 +1,10 @@
-on: [push, pull_request]
+name: CI — Finance RAG
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   quality:
@@ -14,7 +20,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          pip install pysqlite3-binary
+          pip install -r requirements.txt
 
       - name: Lint with ruff
         run: ruff check . --select E,W,F --ignore E501,E402
