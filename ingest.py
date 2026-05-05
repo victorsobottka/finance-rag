@@ -1,5 +1,5 @@
 # ingest.py
-import requests, os
+import requests
 from langchain_community.document_loaders import PyPDFLoader
 # from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -41,10 +41,8 @@ def chunk_documents(docs: list) -> list:
 if __name__ == "__main__":
     # Option A: load from local PDF
     docs = load_pdf("data/aapl_10k_2024.pdf")
-    
     # Option B: load all PDFs in folder
     # for f in os.listdir("data"):
     #     docs += load_pdf(f"data/{f}")
-    
     chunks = chunk_documents(docs)
     print(f"Ready to embed: {len(chunks)} chunks")

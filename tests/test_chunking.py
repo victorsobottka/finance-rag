@@ -22,5 +22,4 @@ def test_no_empty_chunks():
 def test_metadata_preserved():
     docs = [Document(page_content="Revenue was $416 billion.", metadata={"ticker": "AAPL"})]
     chunks = chunk_documents(docs)
-    assert all(c.metadata.get("ticker") == "AAPL" for c in chunks), "Metadata lost during chunking"
-EOF    
+    assert all(c.metadata.get("ticker") == "AAPL" for c in chunks), "Metadata lost during chunking"    
