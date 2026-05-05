@@ -5,7 +5,6 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-import os
 import gradio as gr
 from dotenv import load_dotenv
 load_dotenv("/home/sobottka/Documents/Projects/finance-rag/.env")
