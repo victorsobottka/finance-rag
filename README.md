@@ -1,5 +1,3 @@
-![CI](https://github.com/victorsobottka/finance-rag/actions/workflows/ci.yml/badge.svg)
-
 ---
 title: Finance RAG
 emoji: 📊
@@ -16,15 +14,7 @@ pinned: false
 
 ![CI](https://github.com/victorsobottka/finance-rag/actions/workflows/ci.yml/badge.svg)
 
-Ask questions about Apple's 10-K filing using RAG (Retrieval-Augmented Generation).
-Powered by Llama 3.1 (Groq) + LangChain + ChromaDB.
-
-## Stack
-- **LLM:** Llama 3.1 8B via Groq (free)
-- **Embeddings:** HuggingFace all-MiniLM-L6-v2 (local, free)
-- **Vector store:** ChromaDB
-- **Framework:** LangChain LCEL
-- **UI:** Gradio 6
+A finance RAG that answers questions over earnings reports and SEC filings, deployed on Hugging Face Spaces.
 
 ## How it works
 1. Apple 10-K PDF is chunked into 400-token passages
@@ -33,7 +23,9 @@ Powered by Llama 3.1 (Groq) + LangChain + ChromaDB.
 4. Top 6 chunks are passed to Llama 3.1 with a finance-specific prompt
 5. Answer is returned with source citations
 
-
-
-# finance-rag
-A finance RAG that answers questions over earnings reports, SEC filings, or your own domain docs and it is deployed on Hugging Face Spaces. 
+## Stack
+- **LLM:** Llama 3.1 8B via Groq (free)
+- **Embeddings:** HuggingFace all-MiniLM-L6-v2 (local, free)
+- **Vector store:** ChromaDB
+- **Framework:** LangChain LCEL
+- **UI:** Gradio 6
