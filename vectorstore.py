@@ -17,7 +17,7 @@ def build_vectorstore(chunks: list, embeddings=None, use_openai=False):
             # Free, runs locally — good for iteration
             embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2"
-            )   
+            )
 
     # Add metadata to each chunk for filtering later
     for i, chunk in enumerate(chunks):
@@ -33,7 +33,7 @@ def build_vectorstore(chunks: list, embeddings=None, use_openai=False):
         persist_directory="./chroma_db",
         collection_name="finance_docs"
     )
-    print(f"Stored {len(chunks)} chunks in ChromaDB") 
+    print(f"Stored {len(chunks)} chunks in ChromaDB")
     return vectorstore
 
 def load_vectorstore(use_openai=False):

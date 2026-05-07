@@ -21,15 +21,9 @@ from rag_chain import build_rag_chain
 # =============================================================================
 
 def load_chain():
-    """
-    Load vectorstore and build RAG chain.
-    If chroma_db doesn't exist (e.g. first startup on HF Spaces),
-    rebuilds it from the PDFs in the data/ folder automatically.
-    """
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-
     if not Path("./chroma_db").exists():
         print("No vectorstore found — building from PDFs in data/...")
         from ingest import load_pdf, chunk_documents
@@ -41,10 +35,7 @@ def load_chain():
             docs += load_pdf(str(pdf))
 
         if not docs:
-            raise FileNotFoundError(
-                "No PDFs found in data/ folder. "
-                "Add at least one earnings report or 10-K PDF."
-            )
+            raise FileNotFoundError("No PDFs found in data/ folder.")
 
         chunks = chunk_documents(docs)
         vs = build_vectorstore(chunks, embeddings=embeddings)
@@ -55,7 +46,6 @@ def load_chain():
             embedding_function=embeddings,
             collection_name="finance_docs"
         )
-
     return build_rag_chain(vs)
 
 
@@ -65,29 +55,20 @@ print("Ready.")
 
 
 # =============================================================================
-# ANSWER FUNCTION — called on every user message
+# ANSWER FUNCTION
 # =============================================================================
 
-EXAMPLE_QUESTIONS = [
-    "What was the gross margin percentage last quarter?",
-    "How did revenue compare to analyst expectations?",
-    "What are the key risk factors mentioned?",
-    "What is the current cash and equivalents position?",
-    "How did services revenue perform versus products?",
-]
-
-
-def answer(question: str, history: list) -> str:
-    if not question.strip():
+def answer(message: str, history: list) -> str:
+    if not message.strip():
         return "Please enter a question about the financial documents."
     try:
-        return chain.invoke(question)
+        return chain.invoke(message)
     except Exception as e:
         return f"Error: {str(e)}"
 
 
 # =============================================================================
-# GRADIO UI
+# GRADIO UI — Gradio 6 compatible
 # =============================================================================
 
 demo = gr.ChatInterface(
@@ -98,9 +79,13 @@ demo = gr.ChatInterface(
         "Powered by Llama 3.1 (Groq) + LangChain RAG. "
         "Every answer cites the source passage."
     ),
-    examples=EXAMPLE_QUESTIONS,
-    retry_btn=None,
-    undo_btn=None,
+    examples=[
+        "What was the gross margin percentage?",
+        "What are the key risk factors?",
+        "How did services revenue perform?",
+        "What is the current cash position?",
+    ],
+    type="messages",
 )
 
 if __name__ == "__main__":
