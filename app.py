@@ -99,7 +99,6 @@ demo = gr.ChatInterface(
         "Every answer cites the source passage."
     ),
     examples=EXAMPLE_QUESTIONS,
-    theme=gr.themes.Soft(),
     retry_btn=None,
     undo_btn=None,
 )
