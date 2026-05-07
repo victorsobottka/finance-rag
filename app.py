@@ -5,6 +5,8 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+import os
+from pathlib import Path
 import gradio as gr
 from dotenv import load_dotenv
 load_dotenv("/home/sobottka/Documents/Projects/finance-rag/.env")
@@ -15,27 +17,48 @@ from rag_chain import build_rag_chain
 
 
 # =============================================================================
-# LOAD CHAIN — runs once on startup, not on every question
+# LOAD CHAIN — runs once on startup
 # =============================================================================
 
 def load_chain():
     """
-    Load the pre-built ChromaDB vectorstore and wire up the RAG chain.
-    Uses HuggingFace embeddings (free, no API key needed for embeddings).
-    LLM calls go to Groq — set GROQ_API_KEY in HF Spaces secrets.
+    Load vectorstore and build RAG chain.
+    If chroma_db doesn't exist (e.g. first startup on HF Spaces),
+    rebuilds it from the PDFs in the data/ folder automatically.
     """
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-    vs = Chroma(
-        persist_directory="./chroma_db",
-        embedding_function=embeddings,
-        collection_name="finance_docs"
-    )
+
+    if not Path("./chroma_db").exists():
+        print("No vectorstore found — building from PDFs in data/...")
+        from ingest import load_pdf, chunk_documents
+        from vectorstore import build_vectorstore
+
+        docs = []
+        for pdf in Path("./data").glob("*.pdf"):
+            print(f"  Loading {pdf.name}...")
+            docs += load_pdf(str(pdf))
+
+        if not docs:
+            raise FileNotFoundError(
+                "No PDFs found in data/ folder. "
+                "Add at least one earnings report or 10-K PDF."
+            )
+
+        chunks = chunk_documents(docs)
+        vs = build_vectorstore(chunks, embeddings=embeddings)
+    else:
+        print("Loading existing vectorstore...")
+        vs = Chroma(
+            persist_directory="./chroma_db",
+            embedding_function=embeddings,
+            collection_name="finance_docs"
+        )
+
     return build_rag_chain(vs)
 
 
-# Load once at startup — not inside the answer() function
 print("Loading RAG chain...")
 chain = load_chain()
 print("Ready.")
