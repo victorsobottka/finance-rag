@@ -5,8 +5,6 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-import os
-from pathlib import Path
 import gradio as gr
 from dotenv import load_dotenv
 load_dotenv()
@@ -14,7 +12,7 @@ load_dotenv()
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import TextLoader
-from rag_chain import build_rag_chain, build_retriever
+from rag_chain import build_rag_chain
 from edgar_fetcher import fetch_and_save
 from ingest import chunk_documents
 
