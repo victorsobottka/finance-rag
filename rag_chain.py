@@ -73,8 +73,9 @@ def format_docs(docs):
 # FULL CHAIN
 # =============================================================================
 
-def build_rag_chain(vectorstore):
-    retriever = build_retriever(vectorstore)
+def build_rag_chain(vectorstore, retriever=None):
+    if retriever is None:
+        retriever = build_retriever(vectorstore)
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
     chain = (
         {
@@ -86,7 +87,6 @@ def build_rag_chain(vectorstore):
         | StrOutputParser()
     )
     return chain
-
 
 # =============================================================================
 # TEST — run directly to verify end-to-end
