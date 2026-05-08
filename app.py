@@ -57,14 +57,17 @@ print("Ready.")
 # ANSWER FUNCTION
 # =============================================================================
 
-def answer(message: str, history: list) -> str:
-    if not message.strip():
-        return "Please enter a question about the financial documents."
+def answer(message: str, history: list, ticker: str) -> str:
+    ticker = ticker.strip().upper()
+    if not ticker:
+        return "Please enter a ticker symbol (e.g. AAPL, NVDA, JPM)."
     try:
-        return chain.invoke(message)
+        ensure_ticker_indexed(vectorstore, embeddings, ticker)
+        # ... rest of chain
+    except ValueError as e:
+        return f"'{ticker}' not found in SEC database. Please check the ticker and try again."
     except Exception as e:
         return f"Error: {str(e)}"
-
 
 # =============================================================================
 # GRADIO UI — Gradio 6 compatible
@@ -72,18 +75,19 @@ def answer(message: str, history: list) -> str:
 
 demo = gr.ChatInterface(
     fn=answer,
-    title="Finance RAG — Earnings Report Q&A",
-    description=(
-        "Ask questions about Apple's 10-K filing. "
-        "Powered by Llama 3.1 (Groq) + LangChain RAG. "
-        "Every answer cites the source passage."
-    ),
-    examples=[
-        "What was the gross margin percentage?",
-        "What are the key risk factors?",
-        "How did services revenue perform?",
-        "What is the current cash position?",
+    additional_inputs=[
+        gr.Textbox(
+            value="AAPL",
+            label="Ticker symbol",
+            placeholder="e.g. AAPL, NVDA, JPM, NFLX...",
+            max_lines=1,
+        )
     ],
+    title="Finance RAG — SEC Filing Q&A",
+    description=(
+        "Ask questions about any US public company's latest 10-K. "
+        "Enter any ticker — data pulled live from SEC EDGAR."
+    ),
     type="messages",
 )
 
