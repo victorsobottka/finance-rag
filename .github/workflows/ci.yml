@@ -45,5 +45,8 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          pip install huggingface_hub[hf_xet] hf_xet
+          git config --global user.email "ci@github.com"
+          git config --global user.name "GitHub Actions"
           git remote add hf https://victorsobottka:$HF_TOKEN@huggingface.co/spaces/victorsobottka/finance-rag
           git push hf main --force
