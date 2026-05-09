@@ -139,12 +139,11 @@ demo = gr.ChatInterface(
         "Powered by Llama 3.1 (Groq) + LangChain."
     ),
     examples=[
-        "What was the gross margin percentage?",
-        "What are the key risk factors?",
-        "How did revenue grow year over year?",
-        "What is the cash and equivalents position?",
+        ["What was the gross margin percentage?", "AAPL"],
+        ["What are the key risk factors?", "AAPL"],
+        ["How did revenue grow year over year?", "MSFT"],
+        ["What is the cash and equivalents position?", "NVDA"],
     ],
-)
-
+    )
 if __name__ == "__main__":
     demo.launch()
