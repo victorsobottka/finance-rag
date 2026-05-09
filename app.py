@@ -13,7 +13,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import TextLoader
 from rag_chain import build_rag_chain
-from edgar_fetcher import fetch_and_save
+from edgar_fetcher import fetch_and_save, search_company
 from ingest import chunk_documents
 
 
@@ -81,6 +81,27 @@ print("Loading RAG system...")
 ensure_ticker_indexed("AAPL")
 print("Ready.")
 
+# =============================================================================
+# EXTRACT TICKER FUNCTION
+# =============================================================================
+
+def extract_ticker(message: str, default_ticker: str) -> str:
+    """
+    Detect any company name or ticker in the message using SEC database.
+    Works for any of the 10,000+ companies registered with the SEC.
+    """
+    words = message.split()
+
+    # Check 1, 2, and 3-word combinations in the message
+    for n in range(3, 0, -1):
+        for i in range(len(words) - n + 1):
+            phrase = " ".join(words[i:i+n])
+            result = search_company(phrase)
+            if result:
+                print(f"Detected ticker {result} from '{phrase}'")
+                return result
+
+    return default_ticker
 
 # =============================================================================
 # ANSWER FUNCTION
