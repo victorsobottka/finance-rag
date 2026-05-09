@@ -1,6 +1,7 @@
 # edgar_fetcher.py
 import requests
 from pathlib import Path
+from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "finance-rag victorsobottka@gmail.com"}
 
@@ -30,10 +31,15 @@ def fetch_and_save(ticker: str, form_type: str = "10-K") -> str:
                 f"{int(cik)}/{accession}/{doc_name}"
             )
             resp = requests.get(filing_url, headers=HEADERS)
+
+            # Strip HTML tags — plain text chunks much better for RAG
+            soup = BeautifulSoup(resp.text, "html.parser")
+            clean_text = soup.get_text(separator="\n", strip=True)
+
             Path("data").mkdir(exist_ok=True)
             path = f"data/{ticker.upper()}_{form_type}.txt"
             with open(path, "w", encoding="utf-8") as f:
-                f.write(resp.text)
+                f.write(clean_text)
             print(f"Fetched {form_type} for {ticker} → {path}")
             return path
 

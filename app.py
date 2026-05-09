@@ -96,7 +96,11 @@ def answer(message: str, history: list, ticker: str) -> str:
         return "Please enter a question about the filing."
 
     try:
-        ensure_ticker_indexed(ticker)
+       # Tell user what's happening if fetching for first time
+        if not is_ticker_indexed(ticker):
+           print(f"Triggering fetch for {ticker}...")
+           ensure_ticker_indexed(ticker)
+           print(f"{ticker} now indexed")
 
         retriever = vectorstore.as_retriever(
             search_type="mmr",
@@ -109,13 +113,15 @@ def answer(message: str, history: list, ticker: str) -> str:
         chain = build_rag_chain(vectorstore, retriever=retriever)
         return chain.invoke(message)
 
-    except ValueError:
+    except ValueError as e:
+        print(f"ValueError for {ticker}: {e}")
         return (
             f"'{ticker}' was not found in SEC EDGAR. "
             f"Please check the ticker symbol and try again."
         )
     except Exception as e:
-        return f"Error: {str(e)}"
+        print(f"Unexpected error for {ticker}: {e}")
+        return f"Error processing {ticker}: {str(e)}"
 
 
 # =============================================================================
