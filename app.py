@@ -144,7 +144,6 @@ demo = gr.ChatInterface(
         "How did revenue grow year over year?",
         "What is the cash and equivalents position?",
     ],
-    type="messages",
 )
 
 if __name__ == "__main__":
