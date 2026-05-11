@@ -55,7 +55,7 @@ def extract_ticker_from_text(text: str) -> str | None:
         "paypal": "PYPL", "coinbase": "COIN", "shopify": "SHOP",
     }
 
-    text_lower = text.lower()
+    text.lower()
     for n in [2, 1]:
         for i in range(len(words) - n + 1):
             phrase = " ".join(words[i:i+n]).lower().strip(".,?!'\"")
