@@ -83,12 +83,20 @@ def answer(message: str, history: list) -> str:
     if not message.strip():
         return "Please ask a question about a company's financial filing."
 
-    # Detect company from message
+    # Detect ticker from current message
     detected = extract_ticker_from_text(message)
-    if detected:
-        current_ticker["value"] = detected
 
-    ticker = current_ticker["value"]
+    if detected:
+        ticker = detected
+    else:
+        # Look back through history for the last detected ticker
+        ticker = "AAPL"  # default
+        for past_msg in reversed(history):
+            content = past_msg.get("content", "") if isinstance(past_msg, dict) else str(past_msg)
+            found = extract_ticker_from_text(content)
+            if found:
+                ticker = found
+                break
 
     try:
         ensure_ticker_indexed(ticker)
@@ -98,7 +106,6 @@ def answer(message: str, history: list) -> str:
             search_kwargs={
                 "k": 8,
                 "fetch_k": 30,
-                "lambda_mult": 0.6,
                 "filter": {"ticker": ticker}
             }
         )
@@ -109,12 +116,12 @@ def answer(message: str, history: list) -> str:
     except ValueError:
         return (
             f"Could not find SEC filings for '{message}'. "
-            f"Try using the official company name or ticker symbol."
+            f"Try using the company name (e.g. 'Apple', 'Nvidia') "
+            f"or ticker symbol (e.g. 'AAPL', 'NVDA')."
         )
     except Exception as e:
         print(f"Error: {e}")
         return f"Error: {str(e)}"
-
 
 # =============================================================================
 # GRADIO UI — no additional_inputs

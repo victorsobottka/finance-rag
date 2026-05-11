@@ -1,116 +1,80 @@
 # edgar_fetcher.py
+import json
 import requests
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "finance-rag victorsobottka@gmail.com"}
 
-_SEC_TICKERS = None
+# Load company index once at import time
+with open("company_index.json", "r") as f:
+    _INDEX = json.load(f)
 
-def get_sec_tickers() -> dict:
-    """Load full SEC ticker list — cached after first call."""
-    global _SEC_TICKERS
-    if _SEC_TICKERS is None:
-        url = "https://www.sec.gov/files/company_tickers.json"
-        data = requests.get(url, headers=HEADERS).json()
-        _SEC_TICKERS = {
-            entry["ticker"].upper(): {
-                "cik": str(entry["cik_str"]).zfill(10),
-                "name": entry["title"].lower()
-            }
-            for entry in data.values()
-        }
-    return _SEC_TICKERS
+TICKER_TO_CIK = _INDEX["ticker_to_cik"]      # {"AAPL": "0000320193", ...}
+NAME_TO_TICKER = _INDEX["name_to_ticker"]    # {"apple inc": "AAPL", ...}
+
 
 def get_cik(ticker: str) -> str:
     """Resolve ticker to zero-padded CIK."""
-    tickers = get_sec_tickers()
-    entry = tickers.get(ticker.upper())
-    if not entry:
-        raise ValueError(f"Ticker '{ticker}' not found in SEC database")
-    return entry["cik"]
+    cik = TICKER_TO_CIK.get(ticker.upper())
+    if not cik:
+        raise ValueError(f"Ticker '{ticker}' not found in company index")
+    return cik
 
-def search_company(query: str) -> str | None:
-    """
-    Find ticker from any company name or ticker string.
-    Handles: "nvidia", "NVDA", "jp morgan", "berkshire hathaway"
-    Returns ticker string or None if not found.
-    """
-    tickers = get_sec_tickers()
-    query_clean = query.lower().strip()
-
-    if not query_clean:
-        return None
-
-    # 1. Exact ticker match
-    if query_clean.upper() in tickers:
-        return query_clean.upper()
-
-    best_ticker = None
-    best_score = 0.0
-
-    for ticker, entry in tickers.items():
-        name = entry["name"]  # already lowercase
-
-        # 2. Exact company name match
-        if query_clean == name:
-            return ticker
-
-        # 3. Company name starts with query
-        if name.startswith(query_clean):
-            score = len(query_clean) / len(name)
-            if score > best_score:
-                best_score = score
-                best_ticker = ticker
-            continue
-
-        # 4. Query contained in company name
-        if query_clean in name:
-            score = len(query_clean) / len(name)
-            if score > best_score:
-                best_score = score
-                best_ticker = ticker
-
-    # Require at least 60% name coverage to avoid false matches
-    if best_ticker and best_score >= 0.6:
-        return best_ticker
-
-    return None
-
-# Words that should never be treated as company names
-STOPWORDS = {
-    "what", "was", "the", "apple", "gross", "margin", "percentage",
-    "profit", "revenue", "income", "net", "how", "did", "tell", "me",
-    "about", "is", "are", "for", "and", "its", "their", "last", "year",
-    "cash", "sales", "cost", "total", "share", "stock", "price", "rate",
-    "growth", "loss", "debt", "risk", "market", "financial", "report",
-    "quarter", "annual", "fiscal", "per", "with", "from", "that", "this",
-    "high", "low", "more", "less", "than", "which", "when", "where",
-}
 
 def extract_ticker_from_text(text: str) -> str | None:
     """
-    Scan a sentence for company names or tickers.
-    Filters common English words to avoid false matches.
+    Extract company ticker from natural language message.
+    Strategy:
+      1. Explicit ALL-CAPS ticker (e.g. AAPL, NVDA)
+      2. Known alias map (e.g. "apple" → AAPL)
+      3. Full SEC company name match from company_index.json
     """
-    words = text.replace("?", "").replace(".", "").replace(",", "").split()
+    words = text.replace("?", "").replace(".", "").replace(
+        ",", "").replace("'s", "").split()
 
-    # Try 3-word, 2-word, then 1-word phrases
+    # 1. Explicit uppercase ticker
+    for word in words:
+        clean = word.strip(".,?!'\"")
+        if clean.isupper() and 2 <= len(clean) <= 5 and clean.isalpha():
+            if clean in TICKER_TO_CIK:
+                print(f"Detected explicit ticker: {clean}")
+                return clean
+
+    # 2. Alias map — common names
+    ALIASES = {
+        "apple": "AAPL", "microsoft": "MSFT", "nvidia": "NVDA",
+        "google": "GOOGL", "alphabet": "GOOGL", "amazon": "AMZN",
+        "meta": "META", "facebook": "META", "tesla": "TSLA",
+        "netflix": "NFLX", "jpmorgan": "JPM", "jp morgan": "JPM",
+        "goldman sachs": "GS", "goldman": "GS", "berkshire": "BRK-B",
+        "spotify": "SPOT", "uber": "UBER", "airbnb": "ABNB",
+        "palantir": "PLTR", "salesforce": "CRM", "adobe": "ADBE",
+        "intel": "INTC", "amd": "AMD", "disney": "DIS",
+        "walmart": "WMT", "visa": "V", "mastercard": "MA",
+        "paypal": "PYPL", "coinbase": "COIN", "shopify": "SHOP",
+    }
+
+    text_lower = text.lower()
+    for n in [2, 1]:
+        for i in range(len(words) - n + 1):
+            phrase = " ".join(words[i:i+n]).lower().strip(".,?!'\"")
+            if phrase in ALIASES:
+                print(f"Detected alias: '{phrase}' → {ALIASES[phrase]}")
+                return ALIASES[phrase]
+
+    # 3. Full company name lookup from SEC index
+    # Try 3-word, 2-word, 1-word phrases
     for n in [3, 2, 1]:
         for i in range(len(words) - n + 1):
-            phrase_words = words[i:i+n]
-
-            # Skip if any word in phrase is a stopword (for n=1 and n=2)
-            if n <= 2 and any(w.lower() in STOPWORDS for w in phrase_words):
-                continue
-
-            phrase = " ".join(phrase_words)
-            result = search_company(phrase)
-            if result:
-                print(f"Detected: '{phrase}' → {result}")
-                return result
+            phrase = " ".join(words[i:i+n]).lower().strip(".,?!'\"")
+            if phrase in NAME_TO_TICKER:
+                ticker = NAME_TO_TICKER[phrase]
+                print(f"Detected from SEC index: '{phrase}' → {ticker}")
+                return ticker
 
     return None
+
 
 def fetch_and_save(ticker: str, form_type: str = "10-K") -> str:
     """Fetch filing from SEC EDGAR, strip HTML, save as clean text."""
