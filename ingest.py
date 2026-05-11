@@ -2,8 +2,7 @@
 # load_pdf() removed — edgar_fetcher.py handles all data loading now
 # chunk_documents() is still used by app.py
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def chunk_documents(docs: list) -> list:
     """
