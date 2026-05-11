@@ -96,8 +96,9 @@ def answer(message: str, history: list) -> str:
         retriever = vectorstore.as_retriever(
             search_type="mmr",
             search_kwargs={
-                "k": 6,
-                "fetch_k": 20,
+                "k": 8,
+                "fetch_k": 30,
+                "lambda_mult": 0.6,
                 "filter": {"ticker": ticker}
             }
         )

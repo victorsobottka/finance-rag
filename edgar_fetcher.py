@@ -71,23 +71,40 @@ def search_company(query: str) -> str | None:
                 best_score = score
                 best_ticker = ticker
 
-    # Require at least 40% name coverage to avoid false matches
-    if best_ticker and best_score >= 0.4:
+    # Require at least 60% name coverage to avoid false matches
+    if best_ticker and best_score >= 0.6:
         return best_ticker
 
     return None
 
+# Words that should never be treated as company names
+STOPWORDS = {
+    "what", "was", "the", "apple", "gross", "margin", "percentage",
+    "profit", "revenue", "income", "net", "how", "did", "tell", "me",
+    "about", "is", "are", "for", "and", "its", "their", "last", "year",
+    "cash", "sales", "cost", "total", "share", "stock", "price", "rate",
+    "growth", "loss", "debt", "risk", "market", "financial", "report",
+    "quarter", "annual", "fiscal", "per", "with", "from", "that", "this",
+    "high", "low", "more", "less", "than", "which", "when", "where",
+}
+
 def extract_ticker_from_text(text: str) -> str | None:
     """
-    Scan a full sentence for any company name or ticker.
-    Tries multi-word phrases first (e.g. "jp morgan"), then single words.
+    Scan a sentence for company names or tickers.
+    Filters common English words to avoid false matches.
     """
-    words = text.split()
+    words = text.replace("?", "").replace(".", "").replace(",", "").split()
 
     # Try 3-word, 2-word, then 1-word phrases
     for n in [3, 2, 1]:
         for i in range(len(words) - n + 1):
-            phrase = " ".join(words[i:i+n]).strip("?.,!")
+            phrase_words = words[i:i+n]
+
+            # Skip if any word in phrase is a stopword (for n=1 and n=2)
+            if n <= 2 and any(w.lower() in STOPWORDS for w in phrase_words):
+                continue
+
+            phrase = " ".join(phrase_words)
             result = search_company(phrase)
             if result:
                 print(f"Detected: '{phrase}' → {result}")
