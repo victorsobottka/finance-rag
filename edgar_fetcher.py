@@ -1,78 +1,102 @@
+# edgar_fetcher.py
 import requests
 from pathlib import Path
 from bs4 import BeautifulSoup
 
 HEADERS = {"User-Agent": "finance-rag victorsobottka@gmail.com"}
 
-# Cache the SEC ticker list in memory so we don't fetch it on every call
 _SEC_TICKERS = None
 
 def get_sec_tickers() -> dict:
-    """Load the full SEC company/ticker list — cached after first call."""
+    """Load full SEC ticker list — cached after first call."""
     global _SEC_TICKERS
     if _SEC_TICKERS is None:
         url = "https://www.sec.gov/files/company_tickers.json"
         data = requests.get(url, headers=HEADERS).json()
         _SEC_TICKERS = {
-            entry["ticker"].upper(): entry
+            entry["ticker"].upper(): {
+                "cik": str(entry["cik_str"]).zfill(10),
+                "name": entry["title"].lower()
+            }
             for entry in data.values()
         }
     return _SEC_TICKERS
 
 def get_cik(ticker: str) -> str:
-    """Resolve a ticker symbol to a zero-padded CIK."""
+    """Resolve ticker to zero-padded CIK."""
     tickers = get_sec_tickers()
     entry = tickers.get(ticker.upper())
     if not entry:
         raise ValueError(f"Ticker '{ticker}' not found in SEC database")
-    return str(entry["cik_str"]).zfill(10)
+    return entry["cik"]
 
 def search_company(query: str) -> str | None:
     """
-    Search SEC database for a company by name or ticker.
-    Returns the matched ticker symbol, or None if not found.
-
-    Examples:
-        search_company("nvidia")   → "NVDA"
-        search_company("apple")    → "AAPL"
-        search_company("jp morgan")→ "JPM"
-        search_company("TSLA")     → "TSLA"
+    Find ticker from any company name or ticker string.
+    Handles: "nvidia", "NVDA", "jp morgan", "berkshire hathaway"
+    Returns ticker string or None if not found.
     """
     tickers = get_sec_tickers()
-    query_upper = query.upper().strip()
-    query_lower = query.lower().strip()
+    query_clean = query.lower().strip()
 
-    # 1. Exact ticker match first (fastest)
-    if query_upper in tickers:
-        return query_upper
+    if not query_clean:
+        return None
 
-    # 2. Search company names — look for query anywhere in the name
-    best_match = None
-    best_score = 0
+    # 1. Exact ticker match
+    if query_clean.upper() in tickers:
+        return query_clean.upper()
+
+    best_ticker = None
+    best_score = 0.0
 
     for ticker, entry in tickers.items():
-        company_name = entry.get("title", "").lower()
+        name = entry["name"]  # already lowercase
 
-        # Exact company name match
-        if query_lower == company_name:
+        # 2. Exact company name match
+        if query_clean == name:
             return ticker
 
-        # Query is contained in company name
-        if query_lower in company_name:
-            # Score by how much of the name the query covers
-            score = len(query_lower) / len(company_name)
+        # 3. Company name starts with query
+        if name.startswith(query_clean):
+            score = len(query_clean) / len(name)
             if score > best_score:
                 best_score = score
-                best_match = ticker
+                best_ticker = ticker
+            continue
 
-    # Only return if reasonably confident
-    if best_match and best_score > 0.3:
-        return best_match
+        # 4. Query contained in company name
+        if query_clean in name:
+            score = len(query_clean) / len(name)
+            if score > best_score:
+                best_score = score
+                best_ticker = ticker
+
+    # Require at least 40% name coverage to avoid false matches
+    if best_ticker and best_score >= 0.4:
+        return best_ticker
+
+    return None
+
+def extract_ticker_from_text(text: str) -> str | None:
+    """
+    Scan a full sentence for any company name or ticker.
+    Tries multi-word phrases first (e.g. "jp morgan"), then single words.
+    """
+    words = text.split()
+
+    # Try 3-word, 2-word, then 1-word phrases
+    for n in [3, 2, 1]:
+        for i in range(len(words) - n + 1):
+            phrase = " ".join(words[i:i+n]).strip("?.,!")
+            result = search_company(phrase)
+            if result:
+                print(f"Detected: '{phrase}' → {result}")
+                return result
 
     return None
 
 def fetch_and_save(ticker: str, form_type: str = "10-K") -> str:
-    """Fetch a filing from SEC EDGAR and save as clean text."""
+    """Fetch filing from SEC EDGAR, strip HTML, save as clean text."""
     cik = get_cik(ticker)
     url = f"https://data.sec.gov/submissions/CIK{cik}.json"
     data = requests.get(url, headers=HEADERS).json()
@@ -94,7 +118,7 @@ def fetch_and_save(ticker: str, form_type: str = "10-K") -> str:
             path = f"data/{ticker.upper()}_{form_type}.txt"
             with open(path, "w", encoding="utf-8") as f:
                 f.write(clean_text)
-            print(f"Fetched {form_type} for {ticker} → {path}")
+            print(f"Saved {ticker} {form_type} → {path}")
             return path
 
     raise ValueError(f"No {form_type} found for {ticker}")
