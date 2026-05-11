@@ -133,7 +133,6 @@ demo = gr.ChatInterface(
         ["What are Microsoft's key risk factors?"],
         ["What is Google's cash position?"],
     ],
-    type="messages",
 )
 
 if __name__ == "__main__":
