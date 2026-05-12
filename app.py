@@ -2,6 +2,7 @@
 __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import traceback
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -76,38 +77,45 @@ print("Ready.")
 # ANSWER FUNCTION — no ticker parameter needed
 # =============================================================================
 
-# Track current company per session
-current_ticker = {"value": "AAPL"}
+def get_content_string(msg) -> str:
+    """Safely extract text content from a Gradio history message."""
+    if isinstance(msg, dict):
+        content = msg.get("content", "")
+        # In Gradio 6, content can be a list of content blocks
+        if isinstance(content, list):
+            return " ".join(
+                item.get("text", "") if isinstance(item, dict) else str(item)
+                for item in content
+            )
+        return str(content)
+    return str(msg)
 
 
 def answer(message: str, history: list) -> str:
     if not message.strip():
         return "Please ask a question about a company's financial filing."
 
-    # Detect ticker from current message
-    detected = extract_ticker_from_text(message)
-
-    if detected:
-        ticker = detected
-    else:
-        # Look back through history for the last detected ticker
-        ticker = None
-        for past_msg in reversed(history):
-            content = past_msg.get("content", "") if isinstance(past_msg, dict) else str(past_msg)
-            found = extract_ticker_from_text(content)
-            if found:
-                ticker = found
-                break
-
-    # No company detected anywhere — ask the user to specify
-    if not ticker:
-        return (
-            "I couldn't identify which company you're asking about. "
-            "Please mention the company name or ticker symbol in your message. "
-            "For example: 'What was Apple's gross margin?' or 'Tell me about NVDA revenue.'"
-        )
-
     try:
+        detected = extract_ticker_from_text(message)
+
+        if detected:
+            ticker = detected
+        else:
+            ticker = None
+            for past_msg in reversed(history):
+                content = get_content_string(past_msg)
+                found = extract_ticker_from_text(content)
+                if found:
+                    ticker = found
+                    break
+
+        if not ticker:
+            return (
+                "I couldn't identify which company you're asking about. "
+                "Please mention the company name or ticker — "
+                "for example: 'What was Apple's gross margin?' or 'Tell me about NVDA.'"
+            )
+
         ensure_ticker_indexed(ticker)
 
         retriever = vectorstore.as_retriever(
@@ -122,14 +130,10 @@ def answer(message: str, history: list) -> str:
         response = chain.invoke(message)
         return f"[{ticker}] {response}"
 
-    except ValueError:
-        return (
-            f"Could not find SEC filings for '{ticker}'. "
-            "Try using the official company name or ticker symbol."
-        )
     except Exception as e:
-        print(f"Error for {ticker}: {e}")
-        return f"Error processing request: {str(e)}"
+        traceback.print_exc()
+        return f"Error: {str(e)}"
+
 
 # =============================================================================
 # GRADIO UI — no additional_inputs
