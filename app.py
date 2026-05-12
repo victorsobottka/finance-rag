@@ -79,6 +79,7 @@ print("Ready.")
 # Track current company per session
 current_ticker = {"value": "AAPL"}
 
+
 def answer(message: str, history: list) -> str:
     if not message.strip():
         return "Please ask a question about a company's financial filing."
@@ -90,13 +91,21 @@ def answer(message: str, history: list) -> str:
         ticker = detected
     else:
         # Look back through history for the last detected ticker
-        ticker = "AAPL"  # default
+        ticker = None
         for past_msg in reversed(history):
             content = past_msg.get("content", "") if isinstance(past_msg, dict) else str(past_msg)
             found = extract_ticker_from_text(content)
             if found:
                 ticker = found
                 break
+
+    # No company detected anywhere — ask the user to specify
+    if not ticker:
+        return (
+            "I couldn't identify which company you're asking about. "
+            "Please mention the company name or ticker symbol in your message. "
+            "For example: 'What was Apple's gross margin?' or 'Tell me about NVDA revenue.'"
+        )
 
     try:
         ensure_ticker_indexed(ticker)
@@ -115,13 +124,12 @@ def answer(message: str, history: list) -> str:
 
     except ValueError:
         return (
-            f"Could not find SEC filings for '{message}'. "
-            f"Try using the company name (e.g. 'Apple', 'Nvidia') "
-            f"or ticker symbol (e.g. 'AAPL', 'NVDA')."
+            f"Could not find SEC filings for '{ticker}'. "
+            "Try using the official company name or ticker symbol."
         )
     except Exception as e:
-        print(f"Error: {e}")
-        return f"Error: {str(e)}"
+        print(f"Error for {ticker}: {e}")
+        return f"Error processing request: {str(e)}"
 
 # =============================================================================
 # GRADIO UI — no additional_inputs
