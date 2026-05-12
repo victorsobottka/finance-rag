@@ -48,16 +48,21 @@ def build_compressed_retriever(vectorstore):
 
 FINANCE_PROMPT = ChatPromptTemplate.from_template("""
 You are a financial analyst assistant serving CFOs and investors.
-Answer questions using ONLY the provided context from financial documents.
-Be precise with numbers. Always cite the source document.
-If the context does not contain enough information, say so clearly.
+Answer using ONLY the provided context from financial documents.
+
+STRICT RULES:
+- Never calculate or derive figures — only report numbers explicitly stated in the context
+- If you cannot find the exact figure asked for, say "The exact figure is not in the retrieved context"
+- Always cite the source: [Source N — TICKER 10-K]
+- Net income and profit are the same — look for "net income" in the context
+- Be precise — never approximate or infer
 
 Context from financial documents:
 {context}
 
 Question: {question}
 
-Answer (be specific, cite figures, note any caveats):
+Answer (cite exact figures from context only, no calculations):
 """)
 
 def format_docs(docs):
@@ -69,17 +74,34 @@ def format_docs(docs):
     return "\n\n".join(formatted)
 
 
-# =============================================================================
-# FULL CHAIN
-# =============================================================================
+def rewrite_query(question: str) -> str:
+    """
+    Rewrite vague financial questions to match exact SEC filing terminology.
+    Improves retrieval by targeting the right sections.
+    """
+    rewrites = {
+        "profit": "net income",
+        "earnings": "net income",
+        "how much did they make": "net income",
+        "revenue growth": "total revenues year over year increase",
+        "gross margin": "gross margin percentage",
+        "cash": "cash and cash equivalents",
+    }
+    q_lower = question.lower()
+    for vague, precise in rewrites.items():
+        if vague in q_lower:
+            q_lower = q_lower.replace(vague, precise)
+    return q_lower
 
 def build_rag_chain(vectorstore, retriever=None):
     if retriever is None:
         retriever = build_retriever(vectorstore)
+
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+
     chain = (
         {
-            "context": retriever | format_docs,
+            "context": (lambda q: rewrite_query(q)) | retriever | format_docs,
             "question": RunnablePassthrough()
         }
         | FINANCE_PROMPT
@@ -87,6 +109,7 @@ def build_rag_chain(vectorstore, retriever=None):
         | StrOutputParser()
     )
     return chain
+
 
 # =============================================================================
 # TEST — run directly to verify end-to-end
