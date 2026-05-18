@@ -2,7 +2,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-from ingest import load_pdf, chunk_documents
 
 def build_vectorstore(chunks: list, embeddings=None, use_openai=False):
     """
@@ -47,12 +46,4 @@ def load_vectorstore(use_openai=False):
         collection_name="finance_docs"
     )
 
-if __name__ == "__main__":
-    docs = load_pdf("data/aapl_10k_2024.pdf")
-    chunks = chunk_documents(docs)
-    vs = build_vectorstore(chunks)
 
-    # Quick sanity check
-    results = vs.similarity_search("What was the revenue?", k=3)
-    for r in results:
-        print(r.page_content[:100])

@@ -7,7 +7,9 @@ dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
   - backports.zstd=1.3.0=py311h6b1f9c4_0
+  - beautifulsoup4=4.14.3=py311h06a4308_0
   - brotli-python=1.2.0=py311h66f275b_1
+  - bs4=4.14.3=py311hd3eb1b0_0
   - bzip2=1.0.8=h5eee18b_6
   - ca-certificates=2026.3.19=h06a4308_0
   - certifi=2026.4.22=py311h06a4308_0
@@ -42,8 +44,10 @@ dependencies:
   - requests=2.33.1=pyhcf101f3_0
   - ruff=0.15.1=py311h6e1b9ff_0
   - setuptools=80.10.2=py311h06a4308_0
+  - soupsieve=2.5=py311h06a4308_0
   - sqlite=3.51.2=h3e8d24a_0
   - tk=8.6.15=h54e0aa7_0
+  - typing-extensions=4.15.0=h396c80c_0
   - typing_extensions=4.15.0=pyhcf101f3_0
   - tzdata=2026a=he532380_0
   - urllib3=2.6.3=pyhd8ed1ab_0
@@ -63,6 +67,7 @@ dependencies:
       - annotated-doc==0.0.4
       - annotated-types==0.7.0
       - anyio==4.13.0
+      - appdirs==1.4.4
       - attrs==26.1.0
       - bcrypt==5.0.0
       - build==1.4.2
@@ -72,14 +77,18 @@ dependencies:
       - cuda-pathfinder==1.5.0
       - cuda-toolkit==13.0.2
       - dataclasses-json==0.6.7
+      - datasets==4.8.5
+      - dill==0.4.1
+      - diskcache==5.6.3
       - distro==1.9.0
+      - docstring-parser==0.18.0
       - durationpy==0.10
       - fastapi==0.135.2
       - ffmpy==1.0.0
       - filelock==3.25.2
       - flatbuffers==25.12.19
       - frozenlist==1.8.0
-      - fsspec==2026.3.0
+      - fsspec==2026.2.0
       - git-filter-repo==2.47.0
       - googleapis-common-protos==1.73.1
       - gradio==6.10.0
@@ -98,6 +107,7 @@ dependencies:
       - huggingface-hub==1.8.0
       - importlib-metadata==8.7.1
       - importlib-resources==6.5.2
+      - instructor==1.15.1
       - jinja2==3.1.6
       - jiter==0.13.0
       - joblib==1.5.3
@@ -128,6 +138,7 @@ dependencies:
       - mmh3==5.2.1
       - mpmath==1.3.0
       - multidict==6.7.1
+      - multiprocess==0.70.19
       - mypy-extensions==1.1.0
       - networkx==3.6.1
       - numpy==2.4.4
@@ -162,6 +173,7 @@ dependencies:
       - pillow==12.1.1
       - propcache==0.4.1
       - protobuf==6.33.6
+      - pyarrow==24.0.0
       - pybase64==1.4.3
       - pydantic==2.12.5
       - pydantic-core==2.41.5
@@ -173,6 +185,7 @@ dependencies:
       - python-multipart==0.0.22
       - pytz==2026.1.post1
       - pyyaml==6.0.3
+      - ragas==0.4.3
       - referencing==0.37.0
       - regex==2026.3.32
       - requests-oauthlib==2.0.0
@@ -182,6 +195,7 @@ dependencies:
       - safehttpx==0.1.7
       - safetensors==0.7.0
       - scikit-learn==1.8.0
+      - scikit-network==0.33.5
       - scipy==1.17.1
       - semantic-version==2.10.0
       - sentence-transformers==5.3.0
