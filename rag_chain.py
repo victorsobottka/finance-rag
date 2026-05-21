@@ -31,18 +31,6 @@ def get_langfuse_handler():
         return CallbackHandler()
     return None
 
-def build_rag_chain(vectorstore, retriever=None):
-    if retriever is None:
-        retriever = build_retriever(vectorstore)
-    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
-    chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
-        | FINANCE_PROMPT
-        | llm
-        | StrOutputParser()
-    )
-    return chain
-
 
 # =============================================================================
 # RETRIEVAL

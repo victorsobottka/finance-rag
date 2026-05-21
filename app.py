@@ -14,7 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from rag_chain import build_rag_chain
 from edgar_fetcher import fetch_and_save, extract_ticker_from_text
 from ingest import chunk_documents
-from rag_chain import build_rag_chain, get_langfuse_handler
+from rag_chain import get_langfuse_handler
 
 # =============================================================================
 # GLOBALS — loaded once on startup
