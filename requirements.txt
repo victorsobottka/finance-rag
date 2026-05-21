@@ -17,3 +17,4 @@ pypdf
 gradio
 pysqlite3-binary
 beautifulsoup4
+langfuse
