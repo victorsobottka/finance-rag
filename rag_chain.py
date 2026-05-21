@@ -10,12 +10,38 @@ load_dotenv("/home/sobottka/Documents/Projects/finance-rag/.env")
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+import os
+
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_classic.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_classic.retrievers.document_compressors import LLMChainExtractor
+from langfuse.langchain import CallbackHandler
+
+# =============================================================================
+# LangFuse
+# =============================================================================
+
+
+def get_langfuse_handler():
+    """Returns a Langfuse callback handler if keys are configured."""
+    if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
+        return CallbackHandler()
+    return None
+
+def build_rag_chain(vectorstore, retriever=None):
+    if retriever is None:
+        retriever = build_retriever(vectorstore)
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | FINANCE_PROMPT
+        | llm
+        | StrOutputParser()
+    )
+    return chain
 
 
 # =============================================================================
