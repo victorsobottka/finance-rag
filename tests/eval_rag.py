@@ -8,15 +8,28 @@ from rag_chain import build_rag_chain, build_retriever
 TEST_SET = [
     {
         "question": "What was Apple's gross margin percentage in 2025?",
-        "ground_truth": "Apple's gross margin percentage was 46.9% in 2025"
+        "ground_truth": "Apple's gross margin percentage was 36.8% in 2025"
+        "ticker" : "APPL"
     },
     {
         "question": "What were Apple's total net sales in 2025?",
         "ground_truth": "Apple's total net sales were $416,161 million in 2025"
+        "ticker" : "APPL"
     },
     {
         "question": "What are Apple's main risk factors?",
         "ground_truth": "Key risks include supply chain concentration, regulatory scrutiny, and macroeconomic conditions"
+        "ticker" : "AAPL"
+    },
+    {
+        "question": "What was Apple's services revenue in 2025?",
+        "ground_truth": "Apple's services revenue was $109,158 million in 2025",
+        "ticker": "AAPL"
+    },
+    {
+        "question": "What was Apple's total gross margin in 2025?",
+        "ground_truth": "Apple's total gross margin was $195,201 million in 2025",
+        "ticker": "AAPL"
     },
 ]
 
