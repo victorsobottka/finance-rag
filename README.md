@@ -29,3 +29,13 @@ A finance RAG that answers questions over earnings reports and SEC filings, depl
 - **Vector store:** ChromaDB
 - **Framework:** LangChain LCEL
 - **UI:** Gradio 6
+
+
+## Evaluation (RAGAS)
+
+| Metric | Score | Target |
+|--------|-------|--------|
+| Faithfulness | 0.80 | > 0.70 |
+| Context Precision | 0.90 | > 0.70 |
+
+Evaluated on 5 AAPL questions. Run: `python tests/eval_rag.py`
