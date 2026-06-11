@@ -20,6 +20,23 @@ from langchain_classic.retrievers.contextual_compression import ContextualCompre
 from langchain_classic.retrievers.document_compressors import LLMChainExtractor
 from langfuse.langchain import CallbackHandler
 
+
+RETRIEVER_CONFIG = {
+    "k": 8,
+    "fetch_k": 50,
+    "lambda_mult": 0.5,
+}
+
+def build_retriever(vectorstore, ticker=None, search_type="mmr"):
+    search_kwargs = dict(RETRIEVER_CONFIG)
+    if ticker:
+        search_kwargs["filter"] = {"ticker": ticker}
+    return vectorstore.as_retriever(
+        search_type=search_type,
+        search_kwargs=search_kwargs
+    )
+
+
 # =============================================================================
 # LangFuse
 # =============================================================================
@@ -35,16 +52,6 @@ def get_langfuse_handler():
 # =============================================================================
 # RETRIEVAL
 # =============================================================================
-
-def build_retriever(vectorstore, search_type="mmr"):
-    return vectorstore.as_retriever(
-        search_type=search_type,
-        search_kwargs={
-            "k": 8,
-            "fetch_k": 50,
-            "lambda_mult": 0.7
-        }
-    )
 
 def build_compressed_retriever(vectorstore):
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)

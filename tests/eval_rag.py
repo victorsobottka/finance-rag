@@ -16,7 +16,7 @@ from ragas.llms import llm_factory
 from ragas.metrics.collections import Faithfulness, ContextPrecision
 from vectorstore import load_vectorstore
 from rag_chain import build_rag_chain
-
+from rag_chain import build_retriever
 
 # =============================================================================
 # RAGAS EVALUATOR — Groq via OpenAI-compatible async client
@@ -77,10 +77,7 @@ async def run_eval_async():
         question = item["question"]
         print(f"\nEvaluating: {question[:60]}...")
 
-        retriever = vs.as_retriever(
-            search_type="mmr",
-            search_kwargs={"k": 8, "fetch_k": 50, "filter": {"ticker": ticker}}
-        )
+        retriever = build_retriever(vs, ticker=ticker)
         chain    = build_rag_chain(vs, retriever=retriever)
         answer   = chain.invoke(question)
         docs     = retriever.invoke(question)

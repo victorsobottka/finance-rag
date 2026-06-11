@@ -15,6 +15,7 @@ from rag_chain import build_rag_chain
 from edgar_fetcher import fetch_and_save, extract_ticker_from_text
 from ingest import chunk_documents
 from rag_chain import get_langfuse_handler
+from rag_chain import build_retriever
 
 # =============================================================================
 # GLOBALS — loaded once on startup
@@ -118,14 +119,7 @@ def answer(message: str, history: list) -> str:
 
         ensure_ticker_indexed(ticker)
 
-        retriever = vectorstore.as_retriever(
-            search_type="mmr",
-            search_kwargs={
-                "k": 8,
-                "fetch_k": 50,
-                "filter": {"ticker": ticker}
-            }
-        )
+        retriever = build_retriever(vectorstore, ticker=ticker)
         chain = build_rag_chain(vectorstore, retriever=retriever)
         handler = get_langfuse_handler()
         config = {"callbacks": [handler]} if handler else {}

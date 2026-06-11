@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from vectorstore import load_vectorstore
 from rag_chain import build_rag_chain
 from edgar_fetcher import extract_ticker_from_text
+from rag_chain import build_retriever
 
 __import__('pysqlite3')
 import sys
@@ -42,10 +43,7 @@ async def query(request: QueryRequest):
         )
 
     try:
-        retriever = vs.as_retriever(
-            search_type="mmr",
-            search_kwargs={"k": 8, "fetch_k": 30, "filter": {"ticker": ticker}}
-        )
+        retriever = build_retriever(vs, ticker=ticker)
         chain = build_rag_chain(vs, retriever=retriever)
         answer = chain.invoke(request.question)
         latency = int((time.time() - start) * 1000)
