@@ -40,8 +40,8 @@ def build_retriever(vectorstore, search_type="mmr"):
     return vectorstore.as_retriever(
         search_type=search_type,
         search_kwargs={
-            "k": 6,
-            "fetch_k": 20,
+            "k": 8,
+            "fetch_k": 50,
             "lambda_mult": 0.7
         }
     )
@@ -110,12 +110,10 @@ def rewrite_query(question: str) -> str:
 def build_rag_chain(vectorstore, retriever=None):
     if retriever is None:
         retriever = build_retriever(vectorstore)
-
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
-
     chain = (
         {
-            "context": (lambda q: rewrite_query(q)) | retriever | format_docs,
+            "context": retriever | format_docs,
             "question": RunnablePassthrough()
         }
         | FINANCE_PROMPT
@@ -123,7 +121,6 @@ def build_rag_chain(vectorstore, retriever=None):
         | StrOutputParser()
     )
     return chain
-
 
 # =============================================================================
 # TEST — run directly to verify end-to-end

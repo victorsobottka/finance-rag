@@ -122,7 +122,7 @@ def answer(message: str, history: list) -> str:
             search_type="mmr",
             search_kwargs={
                 "k": 8,
-                "fetch_k": 30,
+                "fetch_k": 50,
                 "filter": {"ticker": ticker}
             }
         )

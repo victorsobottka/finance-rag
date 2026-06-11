@@ -11,8 +11,8 @@ def chunk_documents(docs: list) -> list:
     Called from app.py after edgar_fetcher saves the filing text.
     """
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=400,
-        chunk_overlap=80,
+        chunk_size=500,
+        chunk_overlap=100,
         separators=["\n\n", "\n", ". ", " ", ""],
         length_function=len
     )

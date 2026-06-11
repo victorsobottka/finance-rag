@@ -18,3 +18,6 @@ gradio
 pysqlite3-binary
 beautifulsoup4
 langfuse
+ragas
+datasets
+openai

@@ -1,0 +1,37 @@
+[
+  {
+    "question": "What was Apple's gross margin percentage in 2025?",
+    "answer": "The gross margin percentage for Products in 2025 was 36.8% [Source 1 \u2014 AAPL 10-K].",
+    "ground_truth": "Apple's product gross margin percentage was 36.8% in 2025",
+    "faithfulness": 0.5,
+    "context_precision": 1.0
+  },
+  {
+    "question": "What were Apple's total net sales in 2025?",
+    "answer": "$416,161 million [Source 1 \u2014 AAPL 10-K]",
+    "ground_truth": "Apple's total net sales were $416,161 million in fiscal year 2025",
+    "faithfulness": 0.5,
+    "context_precision": 1.0
+  },
+  {
+    "question": "What are Apple's main manufacturing risks?",
+    "answer": "Based on the provided context, Apple's main manufacturing risks include:\n\n1. Supply shortages and price increases that can materially adversely affect",
+    "ground_truth": "Apple's hardware is manufactured primarily by outsourcing partners in China, India, Japan, South Korea, Taiwan, and Vietnam",
+    "faithfulness": 1.0,
+    "context_precision": 0.5
+  },
+  {
+    "question": "What was Apple's services revenue in 2025?",
+    "answer": "According to [Source 1 \u2014 AAPL 10-K], Apple's services revenue in 2025 was $109,158 million.",
+    "ground_truth": "Apple's services revenue was $109,158 million in 2025",
+    "faithfulness": 1.0,
+    "context_precision": 1.0
+  },
+  {
+    "question": "What was Apple's total gross margin in 2025?",
+    "answer": "The total gross margin in 2025 was $195,201 million. [Source 1 \u2014 AAPL 10-K]",
+    "ground_truth": "Apple's total gross margin was $195,201 million in 2025",
+    "faithfulness": 1.0,
+    "context_precision": 1.0
+  }
+]

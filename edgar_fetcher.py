@@ -93,6 +93,13 @@ def fetch_and_save(ticker: str, form_type: str = "10-K") -> str:
             )
             resp = requests.get(filing_url, headers=HEADERS)
             soup = BeautifulSoup(resp.text, "html.parser")
+            for table in soup.find_all("table"):
+                for row in table.find_all("tr"):
+                    cells = [td.get_text(strip=True) for td in row.find_all(["td", "th"])]
+                    row_text = " | ".join(c for c in cells if c)
+                    if row_text:
+                        row.replace_with(row_text + "\n")
+
             clean_text = soup.get_text(separator="\n", strip=True)
 
             Path("data").mkdir(exist_ok=True)

@@ -45,5 +45,3 @@ def load_vectorstore(use_openai=False):
         embedding_function=embeddings,
         collection_name="finance_docs"
     )
-
-
